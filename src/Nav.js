@@ -5,7 +5,7 @@ const Nav = ({ search, setSearch }) => {
   return (
     <nav className="Nav">
           <form className="searchForm" onSubmit={(e) => e.preventDefault()}>
-                <lavel htmlFor="search"></lavel>
+                <label htmlFor="search"></label>
                 <input 
                     id="search"
                     type="text"
