@@ -4,6 +4,7 @@ import Footer from './Footer';
 import Home from './Home';
 import NewPost from './NewPost';
 import PostPage from './PostPage';
+import EditPost from './EditPost';
 import About from './About';
 import Missing from './Missing';
 import { Routes, Route, useNavigate } from 'react-router-dom';
@@ -17,7 +18,9 @@ function App() {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [postTitle, setPostTitle] = useState('');
-  const [postBody, setPostBody] = useState('')
+  const [postBody, setPostBody] = useState('');
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,22 +52,50 @@ function App() {
       setSearchResults(filteredResults.reverse());
   }, [posts, search])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const id = posts.length ? posts[posts.length - 1].id +1 : 1;
     const datetime = format(new Date(), 'MMMM dd, yyyy pp');
     const newPost = { id, title: postTitle, datetime, body: postBody };
-    const allPosts = [...posts, newPost ];
-    setPosts(allPosts);
-    setPostTitle('');
-    setPostBody('');
-    navigate('/');
+    try {
+      // adding axios to post new posts
+      const response = await api.post('/posts', newPost);
+      const allPosts = [...posts, response.data];
+      setPosts(allPosts);
+      setPostTitle('');
+      setPostBody('');
+      navigate('/');
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+    }
   }
 
-  const handleDelete = (id) => {
-    const postsList = posts.filter(post => post.id !==id);
-    setPosts(postsList);
-    navigate('/');
+  const handleEdit = async (id) => {
+    const datetime = format(new Date(), 'MMMM dd, yyyy pp');
+    const updatedPost = { id, title: editTitle, datetime, body: editBody };
+    try {
+      // adding axios for the update. Use put if updating the entire post. Use patch if updating a specific fileds of the post.
+      const response = await api.put(`/posts/${id}`, updatedPost)
+      // use .map() to eliminate the old post and keep the updated post.
+      setPosts(posts.map(post => post.id === id ? { ...response.data } : post));
+      setEditTitle('');
+      setEditBody('');
+      navigate('/');
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/posts/${id}`);
+      const postsList = posts.filter(post => post.id !==id);
+      setPosts(postsList);
+      navigate('/')
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+
+  }
   }
 
 
@@ -83,6 +114,16 @@ function App() {
                        setPostTitle={setPostTitle}
                        postBody={postBody}
                        setPostBody={setPostBody}
+              />} 
+            /> 
+            <Route path="/edit/:id" 
+                   element={<EditPost 
+                       posts={posts}
+                       handleEdit={handleEdit} 
+                       editTitle={editTitle}
+                       setEditTitle={setEditTitle}
+                       editBody={editBody}
+                       setEditBody={setEditBody}
               />} 
             /> 
             <Route path="/post/:id" 
