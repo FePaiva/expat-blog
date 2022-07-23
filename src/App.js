@@ -12,6 +12,7 @@ import { useState, useEffect} from 'react';
 import { format } from 'date-fns';
 import api from './api/posts';
 import useWindowSize from './hooks/useWindowSize';
+import useAxiosFetch from './hooks/useAxiosFetch';
 
 function App() {
   const [posts, setPosts] = useState([]);
@@ -24,26 +25,33 @@ function App() {
   const navigate = useNavigate();
   const { width } = useWindowSize();
 
+  const { data, fetchError, isLoading } = useAxiosFetch('http://localhost:3500/posts');
+// do not need the useEffect below bc using useAxiosFetch
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
+  //       const response = await api.get('/posts');
+  //       setPosts(response.data);
+  //       console.log(response)
+  //     } catch (error) {
+  //       if(error.response){
+  //           // not in the 200 response range.
+  //           console.log(error.response.data);
+  //           console.log(error.response.status);
+  //           console.log(error.response.headers);
+  //       } else {
+  //         in case of no response or 404 error code.
+  //         console.log(`Error: ${error.message}`);
+  //       }
+  //     }
+  //   }
+  //   fetchPosts();
+  // }, [])
+
+  // bringing data with the useAxiosFetch above, setting up the posts as the date from axios.
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await api.get('/posts');
-        setPosts(response.data);
-        // console.log(response)
-      } catch (error) {
-        if(error.response){
-            // not in the 200 response range.
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-        } else {
-          // in case of no response or 404 error code.
-          console.log(`Error: ${error.message}`);
-        }
-      }
-    }
-    fetchPosts();
-  }, [])
+    setPosts(data)
+  }, [data])
 
   useEffect(() => {
     const filteredResults = posts.filter(post => 
@@ -106,7 +114,11 @@ function App() {
         <Nav search={search} setSearch={setSearch} />
         <Routes> 
             <Route path="/" 
-                   element={<Home posts={searchResults} />} 
+                   element={<Home 
+                      posts={searchResults}
+                      fetchError={fetchError}
+                      isLoading={isLoading} 
+                   />} 
             />
             <Route path="/post" 
                    element={<NewPost 
@@ -115,7 +127,7 @@ function App() {
                        setPostTitle={setPostTitle}
                        postBody={postBody}
                        setPostBody={setPostBody}
-              />} 
+                    />} 
             /> 
             <Route path="/edit/:id" 
                    element={<EditPost 
@@ -125,7 +137,7 @@ function App() {
                        setEditTitle={setEditTitle}
                        editBody={editBody}
                        setEditBody={setEditBody}
-              />} 
+                    />} 
             /> 
             <Route path="/post/:id" 
                    element={
