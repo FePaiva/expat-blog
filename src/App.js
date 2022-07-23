@@ -11,9 +11,9 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useState, useEffect} from 'react';
 import { format } from 'date-fns';
 import api from './api/posts';
+import useWindowSize from './hooks/useWindowSize';
 
 function App() {
-
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -22,6 +22,7 @@ function App() {
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const navigate = useNavigate();
+  const { width } = useWindowSize();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -101,8 +102,8 @@ function App() {
 
   return (
     <div className="App">
-        <Header title="Expat Blog"/>
-        <Nav search={search} setSearch={setSearch}/>
+        <Header title="Expat Blog" width={width} />
+        <Nav search={search} setSearch={setSearch} />
         <Routes> 
             <Route path="/" 
                    element={<Home posts={searchResults} />} 
